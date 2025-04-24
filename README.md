@@ -142,12 +142,17 @@ This application is configured for easy deployment on Vercel:
 3. Click "New Project" on your Vercel dashboard
 4. Import your GitHub repository
 5. Configure the following environment variables:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `DEEPSEEK_API_KEY`
+   - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+   - `DEEPSEEK_API_KEY` - Your DeepSeek API key
 6. Click "Deploy"
 
-Your application will be built and deployed to a Vercel URL. You can configure a custom domain in the Vercel project settings if desired.
+The project will be deployed to a Vercel URL, and you can configure a custom domain in the Vercel project settings if desired.
+
+**Note**: If you encounter deployment issues, try:
+1. Ensure you're using Node.js 18 or higher
+2. Make sure Tailwind CSS is configured correctly
+3. Check that all environment variables are set properly
 
 ## Project Structure
 

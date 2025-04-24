@@ -1,7 +1,7 @@
 'use client';
 
 import { UserMenu } from './user-menu';
-import { Profile } from '@/lib/supabase/types';
+import { Profile } from '@/lib/firebase/types';
 
 interface HeaderProps {
   user: Profile | null;

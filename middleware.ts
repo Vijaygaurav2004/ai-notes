@@ -1,29 +1,23 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import type { Database } from './lib/supabase/types';
 
+// No Firebase client-side middleware like Supabase,
+// so we'll use a simple cookie check instead
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
-  const supabase = createMiddlewareClient<Database>({ req, res });
+  const authCookie = req.cookies.get('firebase-auth-token');
+  const isLoggedIn = !!authCookie;
   
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
   // If user is signed in and the current path is / or /auth, redirect to /dashboard
-  if (session && (req.nextUrl.pathname === '/' || req.nextUrl.pathname.startsWith('/auth'))) {
+  if (isLoggedIn && (req.nextUrl.pathname === '/' || req.nextUrl.pathname.startsWith('/auth'))) {
     return NextResponse.redirect(new URL('/dashboard', req.url));
   }
 
-  // If user is not signed in and the current path is /dashboard, redirect to /auth/login
-  if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/auth/login', req.url));
-  }
-
-  return res;
+  // For dashboard routes, we'll let client-side auth handle redirects
+  // as Firebase doesn't have server middleware
+  
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/', '/dashboard/:path*', '/auth/:path*'],
+  matcher: ['/', '/auth/:path*'],
 };

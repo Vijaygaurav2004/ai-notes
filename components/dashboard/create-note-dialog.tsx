@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { NoteFormValues, noteSchema } from '@/lib/validators';
@@ -29,9 +29,10 @@ import { Plus } from 'lucide-react';
 interface CreateNoteDialogProps {
   onCreate: (note: NoteFormValues) => void;
   isCreating: boolean;
+  children?: ReactNode;
 }
 
-export function CreateNoteDialog({ onCreate, isCreating }: CreateNoteDialogProps) {
+export function CreateNoteDialog({ onCreate, isCreating, children }: CreateNoteDialogProps) {
   const [open, setOpen] = useState(false);
   
   const form = useForm<NoteFormValues>({
@@ -51,10 +52,12 @@ export function CreateNoteDialog({ onCreate, isCreating }: CreateNoteDialogProps
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus size={16} />
-          New Note
-        </Button>
+        {children ? children : (
+          <Button className="gap-2">
+            <Plus size={16} />
+            New Note
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>

@@ -1,12 +1,12 @@
 # AI-Powered Notes App
 
-A mini notes application with AI summarization capabilities built with Next.js, TypeScript, TailwindCSS, Shadcn UI, and Supabase.
+A mini notes application with AI summarization capabilities built with Next.js, TypeScript, TailwindCSS, Shadcn UI, and Firebase.
 
 ## Features
 
 - **User Authentication**: Sign up and login with email/password or Google OAuth
 - **Notes Management**: Create, read, update, and delete notes
-- **AI Summarization**: Generate concise summaries of your notes using the DeepSeek API
+- **AI Summarization**: Generate concise summaries of your notes using the Google Gemini API
 - **Responsive Design**: Works on desktop and mobile devices
 - **State Management**: Uses React Query for efficient data fetching and caching
 
@@ -20,8 +20,8 @@ A mini notes application with AI summarization capabilities built with Next.js, 
   - React Query
 
 - **Backend**:
-  - Supabase (Authentication & Database)
-  - DeepSeek API (AI Summarization)
+  - Firebase (Authentication & Firestore Database)
+  - Google Gemini API (AI Summarization)
 
 ## Setup Instructions
 
@@ -29,85 +29,47 @@ A mini notes application with AI summarization capabilities built with Next.js, 
 
 - Node.js (v18 or higher)
 - npm or yarn
-- Supabase account
-- DeepSeek API key
+- Firebase account
+- Google Gemini API key
 
 ### Environment Variables
 
 Create a `.env.local` file in the root directory with the following variables:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-DEEPSEEK_API_KEY=your-deepseek-api-key
+NEXT_PUBLIC_FIREBASE_API_KEY=your-firebase-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-firebase-auth-domain
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-firebase-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-firebase-storage-bucket
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-firebase-messaging-sender-id
+NEXT_PUBLIC_FIREBASE_APP_ID=your-firebase-app-id
+GEMINI_API_KEY=your-gemini-api-key
 ```
 
-### Database Setup
+### Firebase Setup
 
-1. Create a new Supabase project
-2. Set up the following tables in your Supabase database:
+1. Create a new Firebase project at [firebase.google.com](https://firebase.google.com)
+2. Enable Authentication with Email/Password and Google providers
+3. Create a Firestore database and set up security rules:
 
-#### Profiles Table
-```sql
-create table profiles (
-  id uuid references auth.users on delete cascade primary key,
-  email text not null,
-  full_name text,
-  avatar_url text,
-  created_at timestamp with time zone default now() not null
-);
-
--- Enable RLS
-alter table profiles enable row level security;
-
--- Create policies
-create policy "Public profiles are viewable by everyone."
-  on profiles for select
-  using (true);
-
-create policy "Users can insert their own profile."
-  on profiles for insert
-  with check (auth.uid() = id);
-
-create policy "Users can update own profile."
-  on profiles for update
-  using (auth.uid() = id);
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Profiles collection
+    match /profiles/{userId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Notes collection
+    match /notes/{noteId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.user_id;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.user_id;
+    }
+  }
+}
 ```
-
-#### Notes Table
-```sql
-create table notes (
-  id uuid default uuid_generate_v4() primary key,
-  title text not null,
-  content text not null,
-  summary text,
-  created_at timestamp with time zone default now() not null,
-  updated_at timestamp with time zone default now() not null,
-  user_id uuid references auth.users not null
-);
-
--- Enable RLS
-alter table notes enable row level security;
-
--- Create policies
-create policy "Users can view their own notes."
-  on notes for select
-  using (auth.uid() = user_id);
-
-create policy "Users can create their own notes."
-  on notes for insert
-  with check (auth.uid() = user_id);
-
-create policy "Users can update their own notes."
-  on notes for update
-  using (auth.uid() = user_id);
-
-create policy "Users can delete their own notes."
-  on notes for delete
-  using (auth.uid() = user_id);
-```
-
-3. Set up Google OAuth in your Supabase Authentication settings (optional)
 
 ### Installation and Running
 
@@ -141,10 +103,9 @@ This application is configured for easy deployment on Vercel:
 2. Sign up for a Vercel account at [vercel.com](https://vercel.com) if you don't have one
 3. Click "New Project" on your Vercel dashboard
 4. Import your GitHub repository
-5. Configure the following environment variables:
-   - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
-   - `DEEPSEEK_API_KEY` - Your DeepSeek API key
+5. Configure all the environment variables:
+   - All Firebase environment variables (see above)
+   - `GEMINI_API_KEY` - Your Google Gemini API key
 6. Click "Deploy"
 
 The project will be deployed to a Vercel URL, and you can configure a custom domain in the Vercel project settings if desired.
@@ -164,10 +125,7 @@ The project will be deployed to a Vercel URL, and you can configure a custom dom
   - `ui/` - Shadcn UI components
 - `hooks/` - Custom React hooks
 - `lib/` - Utility functions and type definitions
-  - `supabase/` - Supabase client and types
+  - `firebase/` - Firebase configuration and types
 - `providers/` - React context providers
 - `public/` - Static assets
 
-## License
-
-MIT
